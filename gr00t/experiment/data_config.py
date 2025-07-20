@@ -877,6 +877,34 @@ class AgibotGenie1DataConfig:
         return ComposedModalityTransform(transforms=transforms)
 
 
+class AgibotGenie1V2DataConfig(AgibotGenie1DataConfig):
+    video_keys = [
+        "video.top_head",
+        "video.hand_left",
+        "video.hand_right",
+    ]
+    state_keys = [
+        "state.left_arm_joint_position",
+        "state.right_arm_joint_position",
+        "state.left_effector_position",
+        "state.right_effector_position",
+        "state.head_position",
+        "state.waist_position",
+    ]
+    action_keys = [
+        "action.left_arm_joint_position",
+        "action.right_arm_joint_position",
+        "action.left_effector_position",
+        "action.right_effector_position",
+        "action.head_position",
+        "action.waist_position",
+        "action.robot_velocity",
+    ]
+    language_keys = ["annotation.language.action_text"]
+    observation_indices = [0]
+    action_indices = list(range(50))
+
+
 ###########################################################################################
 
 DATA_CONFIG_MAP = {
@@ -892,4 +920,5 @@ DATA_CONFIG_MAP = {
     "unitree_g1_full_body": UnitreeG1FullBodyDataConfig(),
     "oxe_droid": OxeDroidDataConfig(),
     "agibot_genie1": AgibotGenie1DataConfig(),
+    "agibot_genie1_v2": AgibotGenie1V2DataConfig(),
 }
