@@ -765,26 +765,6 @@ class OxeDroidDataConfig:
 
 
 class OxeDroidDataV2Config(OxeDroidDataConfig):
-    # use verbose video keys
-    video_keys = [
-        "video.exterior_image_1_left_pad_res256_freq15",
-        "video.exterior_image_2_left_pad_res256_freq15",
-        "video.wrist_image_left_pad_res256_freq15",
-    ]
-    state_keys = [
-        "state.eef_position",
-        "state.eef_rotation",
-        "state.gripper_position",
-    ]
-    action_keys = [
-        "action.eef_position_delta",
-        "action.eef_rotation_delta",
-        "action.gripper_position",
-    ]
-    language_keys = ["annotation.language.language_instruction"]
-    observation_indices = [0]
-    action_indices = list(range(16))
-
     def transform(self):
         transforms = [
             # video transforms
@@ -820,7 +800,7 @@ class OxeDroidDataV2Config(OxeDroidDataConfig):
                     "action.eef_position_delta": "q99",
                     "action.eef_rotation_delta": "q99",
                 },
-                target_rotations={"action.eef_rotation_delta": "axis_angle"},
+                # target_rotations={"action.eef_rotation_delta": "axis_angle"},
             ),
             # concat transforms
             ConcatTransform(
