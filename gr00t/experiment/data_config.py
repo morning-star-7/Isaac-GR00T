@@ -764,6 +764,81 @@ class OxeDroidDataConfig:
         return ComposedModalityTransform(transforms=transforms)
 
 
+class OxeDroidDataV2Config(OxeDroidDataConfig):
+    # use verbose video keys
+    video_keys = [
+        "video.exterior_image_1_left_pad_res256_freq15",
+        "video.exterior_image_2_left_pad_res256_freq15",
+        "video.wrist_image_left_pad_res256_freq15",
+    ]
+    state_keys = [
+        "state.eef_position",
+        "state.eef_rotation",
+        "state.gripper_position",
+    ]
+    action_keys = [
+        "action.eef_position_delta",
+        "action.eef_rotation_delta",
+        "action.gripper_position",
+    ]
+    language_keys = ["annotation.language.language_instruction"]
+    observation_indices = [0]
+    action_indices = list(range(16))
+
+    def transform(self):
+        transforms = [
+            # video transforms
+            VideoToTensor(apply_to=self.video_keys),
+            VideoCrop(apply_to=self.video_keys, scale=0.95),
+            VideoResize(apply_to=self.video_keys, height=224, width=224, interpolation="linear"),
+            VideoColorJitter(
+                apply_to=self.video_keys,
+                brightness=0.3,
+                contrast=0.4,
+                saturation=0.5,
+                hue=0.08,
+            ),
+            VideoToNumpy(apply_to=self.video_keys),
+            # state transforms
+            StateActionToTensor(apply_to=self.state_keys),
+            StateActionTransform(
+                apply_to=self.state_keys,
+                normalization_modes={
+                    "state.eef_position": "min_max",
+                    "state.gripper_position": "min_max",
+                },
+                target_rotations={
+                    "state.eef_rotation": "rotation_6d",
+                },
+            ),
+            # action transforms
+            StateActionToTensor(apply_to=self.action_keys),
+            StateActionTransform(
+                apply_to=self.action_keys,
+                normalization_modes={
+                    "action.gripper_position": "binary",
+                    "action.eef_position_delta": "q99",
+                    "action.eef_rotation_delta": "q99",
+                },
+                target_rotations={"action.eef_rotation_delta": "axis_angle"},
+            ),
+            # concat transforms
+            ConcatTransform(
+                video_concat_order=self.video_keys,
+                state_concat_order=self.state_keys,
+                action_concat_order=self.action_keys,
+            ),
+            GR00TTransform(
+                state_horizon=len(self.observation_indices),
+                action_horizon=len(self.action_indices),
+                max_state_dim=64,
+                max_action_dim=32,
+            ),
+        ]
+
+        return ComposedModalityTransform(transforms=transforms)
+
+
 ###########################################################################################
 
 
@@ -919,6 +994,7 @@ DATA_CONFIG_MAP = {
     "unitree_g1": UnitreeG1DataConfig(),
     "unitree_g1_full_body": UnitreeG1FullBodyDataConfig(),
     "oxe_droid": OxeDroidDataConfig(),
+    "oxe_droid_v2": OxeDroidDataV2Config(),
     "agibot_genie1": AgibotGenie1DataConfig(),
     "agibot_genie1_v2": AgibotGenie1V2DataConfig(),
 }
